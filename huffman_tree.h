@@ -6,15 +6,24 @@
 #define HUFFMAN__HUFFMAN_TREE_H_
 
 #include <array>
-#include "const_def.h"
+#include <queue>
+#include "type_def.h"
 
 class huffman_tree {
   private:
-
+    struct node {
+        node* left, *right;
+        ElemType ch;
+        size_t cnt;
+        bool is_leaf;
+//        friend bool operator<(node const& a, node const& b) {
+//            return a.cnt < b.cnt;
+//        }
+    };
+    node* root;
   public:
-    huffman_tree(std::array<uint32_t, ALPHABET_SIZE> freq);
+    huffman_tree(std::array<symbol, ALPHABET_SIZE> freq);
     ~huffman_tree();
-
 
 };
 

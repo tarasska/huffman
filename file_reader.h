@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <array>
 #include <fstream>
-#include "const_def.h"
+#include "type_def.h"
 
 class file_reader {
   private:

@@ -8,6 +8,7 @@
 #include <array>
 #include <queue>
 #include "type_def.h"
+#include "bit_set.h"
 
 class huffman_tree {
   private:
@@ -21,9 +22,17 @@ class huffman_tree {
 //        }
     };
     node* root;
+    bit_set alphabet_code;
+    bit_set tree_code;
+    std::array<bit_set, ALPHABET_SIZE> symbol_map;
+
+    void tree_delete(node *v);
+    void build(std::array<symbol, ALPHABET_SIZE> freq);
+    void code_calculation(node* v, bit_set& cur_code);
   public:
     huffman_tree(std::array<symbol, ALPHABET_SIZE> freq);
     ~huffman_tree();
+
 
 };
 

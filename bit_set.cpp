@@ -3,8 +3,9 @@
 //
 
 #include "bit_set.h"
+bit_set::bit_set() : last_bit(0) {}
 
-void bit_set::append(bit_set const & src) {
+void bit_set::append(bit_set const &src) {
     if (data_.empty()) {
         *this = src;
         return;
@@ -41,5 +42,14 @@ void bit_set::push(ElemType x) {
     data_.back() |= x << (BYTE - last_bit - 1);
     last_bit = (last_bit + 1) % BYTE;
 }
+void bit_set::pop() {
+    if (last_bit == 1) {
+        data_.pop_back();
+        last_bit = 0;
+    } else {
+        last_bit = last_bit ?  last_bit - 1 : 7;
+    }
+}
+
 
 

@@ -5,11 +5,10 @@
 #include "bit_set.h"
 bit_set::bit_set() : last_bit(0) {}
 
-bit_set::bit_set(size_t bit) {
-    data_.push_back(bit << MAX_BIT);
-    last_bit = 1;
+bit_set::bit_set(uint8_t byte) {
+    data_.push_back(byte);
+    last_bit = 0;
 }
-
 
 void bit_set::append(bit_set const& src) {
     if (data_.empty()) {
@@ -62,6 +61,12 @@ std::vector<ElemType> const& bit_set::get_data() const {
 
 uint8_t bit_set::get_bit_size() const {
     return data_.size() * BYTE + last_bit;
+}
+uint8_t bit_set::get_last_bit() const {
+    return last_bit;
+}
+uint8_t bit_set::at(size_t index) const {
+    return (data_[index / BYTE] >> (BYTE - index % BYTE)) & 1;
 }
 
 

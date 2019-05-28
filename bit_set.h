@@ -17,7 +17,7 @@ class bit_set {
   public:
     bit_set();
     bit_set(bit_set const& other) = default;
-    bit_set(size_t bit);
+    explicit bit_set(uint8_t bit);
     ~bit_set() = default;
 
     bit_set& operator=(bit_set const& src) = default;
@@ -27,6 +27,8 @@ class bit_set {
     void pop();
     std::vector<ElemType> const& get_data() const;
     uint8_t get_bit_size() const;
+    uint8_t get_last_bit() const;
+    uint8_t at(size_t index) const;
 
 };
 

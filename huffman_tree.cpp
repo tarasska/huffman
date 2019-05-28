@@ -5,10 +5,8 @@
 #include "huffman_tree.h"
 
 void huffman_tree::tree_delete(huffman_tree::node *v) {
-    if (v->left != nullptr) {
+    if (v != nullptr) {
         tree_delete(v->left);
-    }
-    if (v->right != nullptr) {
         tree_delete(v->right);
     }
     delete v;
@@ -18,6 +16,9 @@ void huffman_tree::build(std::array<symbol, ALPHABET_SIZE> freq) {
     auto my_comp = [](node const* a, node const* b) {return (*a).cnt < (*b).cnt;};
     std::priority_queue<node*,  std::vector<node*>, decltype(my_comp)> q(my_comp);
     for (symbol const& elem : freq) {
+        if (elem.cnt <= 0) {
+            continue;
+        }
         q.push(new node {nullptr, nullptr, elem.ch, elem.cnt, true});
     }
     while (q.size() > 1) {
@@ -50,14 +51,26 @@ void huffman_tree::code_calculation(huffman_tree::node *v, bit_set &cur_code) {
     }
 }
 
-huffman_tree::huffman_tree(std::array<symbol, ALPHABET_SIZE> freq) {
+huffman_tree::huffman_tree(std::array<symbol, ALPHABET_SIZE> freq) : root(nullptr) {
     build(freq);
-    bit_set buf;
+    bit_set buf(0);
     code_calculation(root, buf);
 }
 
 huffman_tree::~huffman_tree() {
     tree_delete(root);
+}
+
+std::string huffman_tree::get_header_code() const {
+    auto tree_code_data_ = tree_code.get_data();
+    auto alp_code_data_ = alphabet_code.get_data();
+    std::string result;
+    result.reserve(2 + alp_code_data_.size() + tree_code_data_.size());
+    result.push_back(alphabet_code.get_bit_size());
+    result.insert(result.end(), alp_code_data_.begin(), alp_code_data_.end());
+    result.push_back(tree_code.get_bit_size());
+    result.insert(result.end(), tree_code_data_.begin(), tree_code_data_.end());
+    return result;
 }
 
 

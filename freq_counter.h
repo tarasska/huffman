@@ -27,6 +27,7 @@ class freq_counter {
         }
         while (first != last) {
             data_[*first].cnt++;
+            first++;
         }
     }
 

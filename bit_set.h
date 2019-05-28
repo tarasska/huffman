@@ -17,14 +17,16 @@ class bit_set {
   public:
     bit_set();
     bit_set(bit_set const& other) = default;
+    bit_set(size_t bit);
     ~bit_set() = default;
 
-    bit_set& operator=(bit_set const &src) = default;
+    bit_set& operator=(bit_set const& src) = default;
 
     void append(bit_set const&);
     void push(ElemType);
     void pop();
-    std::vector<ElemType>& get_data();
+    std::vector<ElemType> const& get_data() const;
+    uint8_t get_bit_size() const;
 
 };
 

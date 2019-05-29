@@ -19,7 +19,7 @@ void huffman_tree::build(std::array<symbol, ALPHABET_SIZE> freq) {
         if (elem.cnt <= 0) {
             continue;
         }
-        q.push(new node{nullptr, nullptr, nullptr, static_cast<char>(elem.ch), elem.cnt, true});
+        q.push(new node{nullptr, nullptr, nullptr, elem.ch, elem.cnt, true});
     }
     while (q.size() > 1) {
         node* ptr_l = q.top();
@@ -38,6 +38,10 @@ void huffman_tree::code_calculation(huffman_tree::node* v, bit_set& cur_code) {
     }
     if (v->is_leaf) {
         symbol_map[v->ch] = cur_code;
+        if (v->ch == 'A') {
+            int x;
+            x++;
+        }
         alphabet_code.append(bit_set(v->ch));
     } else {
         tree_code.push(1);
@@ -140,6 +144,18 @@ void huffman_tree::check_tree_equals(huffman_tree::node* v, huffman_tree::node* 
     check_tree_equals(v->right, u->right);
 }
 
+std::string huffman_tree::size_t_to_string(size_t x) {
+    static const size_t mask = 255;
+    std::string result;
+    result.resize(4);
+    result[0] = (x >> 24) & mask;
+    result[1] = (x >> 16) & mask;
+    result[2] = (x >> 8) & mask;
+    result[3] = x & mask;
+    return result;
+}
+
+
 huffman_tree::huffman_tree(std::array<symbol, ALPHABET_SIZE> freq)
     : root(nullptr), decoder_root(nullptr), dfs_tree_size(0) {
     build(freq);
@@ -162,11 +178,14 @@ std::string huffman_tree::get_header_code() const {
     auto tree_code_data_ = tree_code.get_data();
     auto alp_code_data_ = alphabet_code.get_data();
     std::string result;
-    result.resize(2 + alp_code_data_.size() + tree_code_data_.size());
-    result[0] = static_cast<char>(alp_code_data_.size());
-    std::copy(alp_code_data_.begin(), alp_code_data_.end(), result.begin() + 1);
-    result[1 + alp_code_data_.size()] = static_cast<char>(tree_code.get_bit_size());
-    std::copy(tree_code_data_.begin(), tree_code_data_.end(), result.begin() + 2 + alp_code_data_.size());
+    result.resize(2 * SIZE_OF_SIZE + alp_code_data_.size() + tree_code_data_.size());
+    std::string tree_sz = size_t_to_string(alp_code_data_.size());
+    std::copy(tree_sz.begin(), tree_sz.end(), result.begin());
+    std::copy(alp_code_data_.begin(), alp_code_data_.end(), result.begin() + SIZE_OF_SIZE);
+    tree_sz = size_t_to_string(tree_code.get_bit_size());
+    std::copy(tree_sz.begin(), tree_sz.end(), result.begin() + SIZE_OF_SIZE + alp_code_data_.size());
+    std::copy(tree_code_data_.begin(), tree_code_data_.end(),
+        result.begin() + 2 * SIZE_OF_SIZE + alp_code_data_.size());
     return result;
 }
 

@@ -30,12 +30,12 @@ void bit_set::append(bit_set const& src) {
     for (size_t i = old_size; i < data_.size() - 1; ++i) {
         data_[i] = (data_[i] << (BYTE - last_bit)) | (data_[i + 1] >> last_bit);
     }
-    if (src.last_bit <= BYTE - last_bit) {
+    if (src.last_bit <= BYTE - last_bit && src.last_bit) {
         data_.pop_back();
         last_bit = (src.last_bit + last_bit) % BYTE;
     } else {
         data_.back() <<= (BYTE - last_bit);
-        last_bit = src.last_bit - (BYTE - last_bit);
+        last_bit = (src.last_bit + last_bit) % BYTE;
     }
 }
 
@@ -63,7 +63,7 @@ std::vector<ElemType> const& bit_set::get_data() const {
     return data_;
 }
 
-uint8_t bit_set::get_bit_size() const {
+size_t bit_set::get_bit_size() const {
     return data_.size() * BYTE - (last_bit == 0 ? 0 : BYTE - last_bit);
 }
 

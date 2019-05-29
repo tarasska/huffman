@@ -27,7 +27,7 @@ class bit_set {
     void push(ElemType);
     void pop();
     std::vector<ElemType> const& get_data() const;
-    uint8_t get_bit_size() const;
+    size_t get_bit_size() const;
     uint8_t get_last_bit() const;
     uint8_t at(size_t index) const;
     void cut_tail(size_t size);

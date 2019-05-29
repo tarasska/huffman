@@ -13,7 +13,7 @@ void huffman_tree::tree_delete(huffman_tree::node* v) {
 }
 
 void huffman_tree::build(std::array<symbol, ALPHABET_SIZE> freq) {
-    auto my_comp = [](node const* a, node const* b) { return (*a).cnt < (*b).cnt; };
+    auto my_comp = [](node const* a, node const* b) { return (*a).cnt > (*b).cnt; };
     std::priority_queue<node*, std::vector<node*>, decltype(my_comp)> q(my_comp);
     for (symbol const& elem : freq) {
         if (elem.cnt <= 0) {
@@ -40,11 +40,12 @@ void huffman_tree::code_calculation(huffman_tree::node* v, bit_set& cur_code) {
         symbol_map[v->ch] = cur_code;
         alphabet_code.append(bit_set(v->ch));
     } else {
-        tree_code.push(0);
-        cur_code.push(0);
+        tree_code.push(1);
+        cur_code.push(1);
         code_calculation(v->left, cur_code);
         cur_code.pop();
-        tree_code.push(1);
+        tree_code.push(0);
+        cur_code.push(0);
         code_calculation(v->right, cur_code);
         cur_code.pop();
     }
@@ -55,13 +56,14 @@ void huffman_tree::build_decoder_tree() {
     if (dfs_tree_size == 1) {
         decoder_root = new node{nullptr, nullptr, nullptr, decoder_alphabet.front(), 366, true};
         decoder_alphabet.pop();
+        return;
     } else {
         decoder_root = new node{nullptr, nullptr, nullptr, 0, 366, false};
     }
-    size_t ind = 1;
+    size_t ind = 0;
     node* v = decoder_root;
     while (ind < dfs_tree_size) {
-        if (dfs_tree_code.at(ind) == 0) {
+        if (dfs_tree_code.at(ind++) == 1) {
             v->left = new node{nullptr, nullptr, v, 0, 366, false};
             v = v->left;
         } else {
@@ -94,7 +96,7 @@ void huffman_tree::tree_decode_block(bit_set& block_code) {
     size_t size_ = block_code.get_bit_size();
     if (dfs_tree_size == 1) {
         while (ind < size_) {
-            if (block_code.at(ind++) == 1) {
+            if (block_code.at(ind++) == 0) {
                 throw std::runtime_error("corrupted data block");
             }
             buffer_block += decoder_root->ch;
@@ -103,7 +105,7 @@ void huffman_tree::tree_decode_block(bit_set& block_code) {
     }
     node* v = decoder_box_.v_in_tree == nullptr ? decoder_root : decoder_box_.v_in_tree;
     while (ind < size_) {
-        if (block_code.at(ind++) == 0) {
+        if (block_code.at(ind++) == 1) {
             v = v->left;
         } else {
             v = v->right;
@@ -119,12 +121,36 @@ void huffman_tree::tree_decode_block(bit_set& block_code) {
     decoder_box_.v_in_tree = v;
 }
 
+void huffman_tree::check_tree_equals(huffman_tree::node* v, huffman_tree::node* u) {
+    if (v == nullptr || u == nullptr) {
+        if (v != nullptr || u != nullptr) {
+            throw std::runtime_error("null");
+        } else {
+            return;
+        }
+    }
+    if (v->is_leaf || u->is_leaf) {
+        if (!v->is_leaf || !u->is_leaf) {
+            throw std::runtime_error("leaf");
+        } else {
+            return;
+        }
+    }
+    check_tree_equals(v->left, u->left);
+    check_tree_equals(v->right, u->right);
+}
+
 huffman_tree::huffman_tree(std::array<symbol, ALPHABET_SIZE> freq)
     : root(nullptr), decoder_root(nullptr), dfs_tree_size(0) {
     build(freq);
-    bit_set buf;
-    tree_code.push(0);
-    code_calculation(root, buf);
+    if (root->is_leaf) {
+        tree_code.push(1);
+        alphabet_code.append(bit_set(root->ch));
+        symbol_map[root->ch] = tree_code;
+    } else {
+        bit_set buf;
+        code_calculation(root, buf);
+    }
 }
 
 huffman_tree::~huffman_tree() {
@@ -136,7 +162,7 @@ std::string huffman_tree::get_header_code() const {
     auto tree_code_data_ = tree_code.get_data();
     auto alp_code_data_ = alphabet_code.get_data();
     std::string result;
-    result.resize(3 + alp_code_data_.size() + tree_code_data_.size());
+    result.resize(2 + alp_code_data_.size() + tree_code_data_.size());
     result[0] = static_cast<char>(alp_code_data_.size());
     std::copy(alp_code_data_.begin(), alp_code_data_.end(), result.begin() + 1);
     result[1 + alp_code_data_.size()] = static_cast<char>(tree_code.get_bit_size());

@@ -17,7 +17,7 @@ class huffman_tree {
   private:
     struct node {
         node* left, *right, *parent;
-        char ch;
+        unsigned char ch;
         size_t cnt;
         bool is_leaf;
     };
@@ -31,6 +31,7 @@ class huffman_tree {
     node* root;
     bit_set alphabet_code;
     bit_set tree_code;
+    bit_set encode_block_set;
     std::array<bit_set, ALPHABET_SIZE> symbol_map;
 
     node* decoder_root;
@@ -44,6 +45,7 @@ class huffman_tree {
     void code_calculation(node* v, bit_set& cur_code);
     void build_decoder_tree();
     void tree_decode_block(bit_set& block_code);
+    static void check_tree_equals(node* v, node* u);
 
     template <typename InputIt>
     InputIt decode_alpha(InputIt first, InputIt last) {
@@ -51,6 +53,7 @@ class huffman_tree {
             decoder_alphabet.push(*first);
             first++;
         }
+        return first;
     }
 
     template <typename InputIt>
@@ -59,6 +62,7 @@ class huffman_tree {
             dfs_tree_code.append(bit_set(*first));
             first++;
         }
+        return first;
     }
 
     template <typename InputIt>
@@ -69,12 +73,20 @@ class huffman_tree {
                 decoder_box_.current_size = *first;
                 first++;
             }
-            while (first != last && dfs_tree_size < decoder_box_.current_size) {
+            while (first != last && block_code.get_bit_size() < decoder_box_.current_size) {
                 block_code.append(bit_set(*first));
                 first++;
             }
-            if (dfs_tree_size >= decoder_box_.current_size) {
+            if (block_code.get_bit_size() >= decoder_box_.current_size) {
+                if (decoder_box_.current_size % BYTE != 0) {
+                    block_code.cut_tail(BYTE - decoder_box_.current_size % BYTE);
+                }
                 decoder_box_.current_size = 0;
+            }
+        }
+        for (size_t i = 0; i < tree_code.get_data().size(); ++i) {
+            if (encode_block_set.get_data()[i] != block_code.get_data()[i]) {
+                throw std::runtime_error("block");
             }
         }
         tree_decode_block(block_code);
@@ -97,9 +109,10 @@ class huffman_tree {
         static_assert(sizeof(typename std::iterator_traits<InputIt>::value_type), "not 1 byte");
         bit_set block;
         while (first != last) {
-            block.append(symbol_map[*first]);
+            block.append(symbol_map[(uint8_t)*first]);
             first++;
         }
+        encode_block_set = block;
         std::string result;
         result.push_back(block.get_bit_size());
         std::move(block.get_data().begin(), block.get_data().end(), std::back_inserter(result));
@@ -132,8 +145,11 @@ class huffman_tree {
             }
             first = decode_tree(first, last);
             if (dfs_tree_code.get_bit_size() >= decoder_box_.current_size) {
-                dfs_tree_code.cut_tail(decoder_box_.current_size % BYTE);
+                if (decoder_box_.current_size % BYTE != 0) {
+                    dfs_tree_code.cut_tail(BYTE - decoder_box_.current_size % BYTE);
+                }
                 build_decoder_tree();
+                check_tree_equals(root, decoder_root);
                 decoder_box_.state = "block";
                 decoder_box_.current_size = 0;
             } else {

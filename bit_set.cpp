@@ -26,7 +26,7 @@ void bit_set::append(bit_set const& src) {
         return;
     }
     data_[old_size - 1] |= data_[old_size] >> (last_bit);
-    data_[old_size] <<= BYTE - last_bit;
+    //data_[old_size] <<= BYTE - last_bit;
     for (size_t i = old_size; i < data_.size() - 1; ++i) {
         data_[i] = (data_[i] << (BYTE - last_bit)) | (data_[i + 1] >> last_bit);
     }
@@ -35,7 +35,7 @@ void bit_set::append(bit_set const& src) {
         last_bit = (src.last_bit + last_bit) % BYTE;
     } else {
         data_.back() <<= (BYTE - last_bit);
-        last_bit = src.last_bit - last_bit;
+        last_bit = src.last_bit - (BYTE - last_bit);
     }
 }
 
@@ -43,7 +43,11 @@ void bit_set::push(ElemType x) {
     if (last_bit == 0) {
         data_.push_back(0);
     }
-    data_.back() |= x << (BYTE - last_bit - 1);
+    if (x == 0) {
+        data_.back() &= FULL_BYTE - (1 << (BYTE - last_bit - 1));
+    } else {
+        data_.back() |= (x << (BYTE - last_bit - 1));
+    }
     last_bit = (last_bit + 1) % BYTE;
 }
 
@@ -60,7 +64,7 @@ std::vector<ElemType> const& bit_set::get_data() const {
 }
 
 uint8_t bit_set::get_bit_size() const {
-    return (data_.size() - 1) * BYTE + last_bit;
+    return data_.size() * BYTE - (last_bit == 0 ? 0 : BYTE - last_bit);
 }
 
 uint8_t bit_set::get_last_bit() const {
@@ -68,7 +72,8 @@ uint8_t bit_set::get_last_bit() const {
 }
 
 uint8_t bit_set::at(size_t index) const {
-    return (data_[index / BYTE] >> (BYTE - index % BYTE)) & 1;
+    uint8_t x = (data_[index / BYTE] >> (BYTE - index % BYTE - 1)) & 1;
+    return x;
 }
 
 void bit_set::cut_tail(size_t size) {

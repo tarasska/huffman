@@ -89,11 +89,41 @@ void huffman_tree::build_decoder_tree() {
     }
 }
 
+void huffman_tree::tree_decode_block(bit_set& block_code) {
+    size_t ind = 0;
+    size_t size_ = block_code.get_bit_size();
+    if (dfs_tree_size == 1) {
+        while (ind < size_) {
+            if (block_code.at(ind++) == 1) {
+                throw std::runtime_error("corrupted data block");
+            }
+            buffer_block += decoder_root->ch;
+        }
+        return;
+    }
+    node* v = decoder_box_.v_in_tree == nullptr ? decoder_root : decoder_box_.v_in_tree;
+    while (ind < size_) {
+        if (block_code.at(ind++) == 0) {
+            v = v->left;
+        } else {
+            v = v->right;
+        }
+        if (v == nullptr) {
+            throw std::runtime_error("corrupted data block");
+        }
+        if (v->is_leaf) {
+            buffer_block += v->ch;
+            v = decoder_root;
+        }
+    }
+    decoder_box_.v_in_tree = v;
+}
+
 huffman_tree::huffman_tree(std::array<symbol, ALPHABET_SIZE> freq)
     : root(nullptr), decoder_root(nullptr), dfs_tree_size(0) {
     build(freq);
     bit_set buf;
-    buf.push(0);
+    tree_code.push(0);
     code_calculation(root, buf);
 }
 
@@ -106,13 +136,14 @@ std::string huffman_tree::get_header_code() const {
     auto tree_code_data_ = tree_code.get_data();
     auto alp_code_data_ = alphabet_code.get_data();
     std::string result;
-    result.reserve(2 + alp_code_data_.size() + tree_code_data_.size());
-    result.push_back(alp_code_data_.size());
-    result.insert(result.end(), alp_code_data_.begin(), alp_code_data_.end());
-    result.push_back(tree_code.get_bit_size());
-    result.insert(result.end(), tree_code_data_.begin(), tree_code_data_.end());
+    result.resize(3 + alp_code_data_.size() + tree_code_data_.size());
+    result[0] = static_cast<char>(alp_code_data_.size());
+    std::copy(alp_code_data_.begin(), alp_code_data_.end(), result.begin() + 1);
+    result[1 + alp_code_data_.size()] = static_cast<char>(tree_code.get_bit_size());
+    std::copy(tree_code_data_.begin(), tree_code_data_.end(), result.begin() + 2 + alp_code_data_.size());
     return result;
 }
+
 
 
 

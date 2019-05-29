@@ -25,6 +25,7 @@ class huffman_tree {
     struct decoder_box {
         std::string state = "header_alpha";
         size_t current_size;
+        node* v_in_tree = nullptr;
     } decoder_box_;
 
     node* root;
@@ -36,12 +37,13 @@ class huffman_tree {
     std::queue<char> decoder_alphabet;
     bit_set dfs_tree_code;
     size_t dfs_tree_size;
+    std::string buffer_block;
 
     static void tree_delete(node *v);
     void build(std::array<symbol, ALPHABET_SIZE> freq);
     void code_calculation(node* v, bit_set& cur_code);
     void build_decoder_tree();
-
+    void tree_decode_block(bit_set& block_code);
 
     template <typename InputIt>
     InputIt decode_alpha(InputIt first, InputIt last) {
@@ -60,16 +62,29 @@ class huffman_tree {
     }
 
     template <typename InputIt>
-    InputIt decode_block(InputIt first, InputIt last) {
-        while (first != last && dfs_tree_code.get_bit_size() < decoder_box_.current_size) {
-            dfs_tree_code.append(bit_set(*first));
-            first++;
+    std::string const& decode_block(InputIt first, InputIt last) {
+        bit_set block_code;
+        while (first != last) {
+            if (decoder_box_.current_size == 0) {
+                decoder_box_.current_size = *first;
+                first++;
+            }
+            while (first != last && dfs_tree_size < decoder_box_.current_size) {
+                block_code.append(bit_set(*first));
+                first++;
+            }
+            if (dfs_tree_size >= decoder_box_.current_size) {
+                decoder_box_.current_size = 0;
+            }
         }
+        tree_decode_block(block_code);
+        return buffer_block;
     }
 
 
   public:
     explicit huffman_tree(std::array<symbol, ALPHABET_SIZE> freq);
+    huffman_tree() = default;
     ~huffman_tree();
 
     std::string get_header_code() const;
@@ -117,9 +132,7 @@ class huffman_tree {
             }
             first = decode_tree(first, last);
             if (dfs_tree_code.get_bit_size() >= decoder_box_.current_size) {
-                for (size_t i = 0; i < BYTE - dfs_tree_code.get_last_bit(); ++i) {
-                    dfs_tree_code.pop();
-                }
+                dfs_tree_code.cut_tail(decoder_box_.current_size % BYTE);
                 build_decoder_tree();
                 decoder_box_.state = "block";
                 decoder_box_.current_size = 0;
@@ -128,14 +141,8 @@ class huffman_tree {
             }
         }
         if (decoder_box_.state == "block") {
-            if (decoder_box_.current_size == 0) {
-                decoder_box_.current_size = *first;
-                first++;
-            }
             return decode_block(first, last);
         }
-
-
     }
 
 };

@@ -60,13 +60,21 @@ std::vector<ElemType> const& bit_set::get_data() const {
 }
 
 uint8_t bit_set::get_bit_size() const {
-    return data_.size() * BYTE + last_bit;
+    return (data_.size() - 1) * BYTE + last_bit;
 }
+
 uint8_t bit_set::get_last_bit() const {
     return last_bit;
 }
+
 uint8_t bit_set::at(size_t index) const {
     return (data_[index / BYTE] >> (BYTE - index % BYTE)) & 1;
+}
+
+void bit_set::cut_tail(size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        pop();
+    }
 }
 
 

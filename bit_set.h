@@ -29,6 +29,7 @@ class bit_set {
     uint8_t get_bit_size() const;
     uint8_t get_last_bit() const;
     uint8_t at(size_t index) const;
+    void cut_tail(size_t size);
 
 };
 

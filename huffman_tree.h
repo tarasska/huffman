@@ -10,8 +10,9 @@
 #include <queue>
 #include "type_def.h"
 #include "bit_set.h"
+#include "freq_counter.h"
 
-#define BLOCK_SIZE 10
+#define BLOCK_SIZE 65536
 #define SIZE_OF_SIZE 4
 
 class huffman_tree {
@@ -31,6 +32,7 @@ class huffman_tree {
     } decoder_box_;
 
     node* root;
+    bool is_empty_tree;
     bit_set alphabet_code;
     bit_set tree_code;
     bit_set encode_block_set;
@@ -116,7 +118,7 @@ class huffman_tree {
 
 
   public:
-    explicit huffman_tree(std::array<symbol, ALPHABET_SIZE> freq);
+    explicit huffman_tree(freq_counter fc);
     huffman_tree() = default;
     ~huffman_tree();
 
@@ -128,6 +130,9 @@ class huffman_tree {
             throw std::runtime_error("not trivially copyable type is prohibited");
         }
         static_assert(sizeof(typename std::iterator_traits<InputIt>::value_type), "not 1 byte");
+        if (is_empty_tree) {
+            return "";
+        }
         bit_set block;
         while (first != last) {
             block.append(symbol_map[FULL_BYTE & *first]);
@@ -171,7 +176,7 @@ class huffman_tree {
                         dfs_tree_code.cut_tail(BYTE - decoder_box_.current_size % BYTE);
                     }
                     build_decoder_tree();
-                    check_tree_equals(root, decoder_root);
+                    //check_tree_equals(root, decoder_root);
                     decoder_box_.state = "block";
                     decoder_box_.current_size = 0;
                     decoder_box_.size_byte = SIZE_OF_SIZE;

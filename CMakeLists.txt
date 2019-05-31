@@ -4,7 +4,7 @@ project(huffman)
 set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lpthread")
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined -D_GLIBCXX_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined -D_GLIBCXX_DEBUG")
 
 add_library(huffman_lib STATIC type_def.h bit_set.h bit_set.cpp freq_counter.h freq_counter.cpp
         huffman_tree.h huffman_tree.cpp)

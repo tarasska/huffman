@@ -82,5 +82,13 @@ void bit_set::cut_tail(size_t size) {
     }
 }
 
+std::string bit_set::to_string() const {
+    std::string buffer;
+    for (size_t i = 0; i < get_bit_size(); ++i) {
+        buffer += static_cast<char>('0' + at(i));
+    }
+    return buffer;
+}
+
 
 

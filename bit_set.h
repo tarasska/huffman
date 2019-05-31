@@ -5,6 +5,7 @@
 #ifndef HUFFMAN__BIT_SET_H_
 #define HUFFMAN__BIT_SET_H_
 #include <vector>
+#include <string>
 #include <cstddef>
 #include "type_def.h"
 
@@ -32,6 +33,7 @@ class bit_set {
     uint8_t get_last_bit() const;
     uint8_t at(size_t index) const;
     void cut_tail(size_t size);
+    std::string to_string() const;
 
 };
 

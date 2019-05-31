@@ -24,7 +24,7 @@ TEST(correctness, random_small_string) {
     std::uniform_int_distribution<int> distribution(0, 1000);
     std::vector<char> data;
     for (size_t i = 0; i < 1000; ++i) {
-        data.push_back((char) ('a' + distribution(gen) % 20));
+        data.push_back((char) ('a' + distribution(gen) % 26));
     }
     freq_counter fc;
     fc.update(data.begin(), data.end());
@@ -32,8 +32,9 @@ TEST(correctness, random_small_string) {
     std::string s = tree.get_header_code();
     s.append(tree.encode_block(data.begin(), data.end()));
     std::string result = tree.decode(s.begin(), s.end());
-    std::string expect = data.data();
-    EXPECT_EQ(result, expect);
+    data.push_back('\0');
+    std::string expect(data.data());
+    EXPECT_EQ(expect, result);
 }
 
 TEST(correctness, big_block_in_one_string_random_string_test) {
@@ -86,13 +87,30 @@ TEST(correctness, empty_file) {
     std::ifstream in;
     std::ofstream out;
     in.open("test/empty_file.in", std::ios::in | std::ios::binary);
-    out.open("buffer_file_for_encode.out", std::ios::out | std::ios::binary);
+    out.open("test/buffer_file_for_encode.out", std::ios::out | std::ios::binary);
     if (!in.is_open() || !out.is_open()) {
         std::cerr << "stream failed" << std::endl;
         return;
     }
     freq_counter fc;
-    std::string input;
-
+    std::vector<char> input;
+    in.read(input.data(), BLOCK_SIZE);
+    fc.update(input.begin(), input.end());
+    huffman_tree tree(fc);
+    std::string encode = tree.get_header_code() + tree.encode_block(input.begin(), input.end());
+    out.write(encode.data(), encode.size());
+    in.close();
+    out.close();
+    in.open("test/buffer_file_for_encode.out", std::ios::in | std::ios::binary);
+    if (!in.is_open()) {
+        std::cerr << "stream failed" << std::endl;
+        return;
+    }
+    huffman_tree decode_tree;
+    std::vector<char> encode_data;
+    in.read(encode_data.data(), BLOCK_SIZE);
+    std::string result =  decode_tree.decode(encode_data.begin(), encode_data.end());
+    EXPECT_EQ("", result);
+    in.close();
 }
 

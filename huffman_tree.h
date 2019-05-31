@@ -189,8 +189,8 @@ class huffman_tree {
                 return decode_block(first, last);
             }
         }
+        return "";
     }
-
 };
 
 #endif //HUFFMAN__HUFFMAN_TREE_H_

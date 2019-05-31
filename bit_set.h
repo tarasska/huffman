@@ -5,6 +5,7 @@
 #ifndef HUFFMAN__BIT_SET_H_
 #define HUFFMAN__BIT_SET_H_
 #include <vector>
+#include <cstddef>
 #include "type_def.h"
 
 #define MAX_BIT 7u

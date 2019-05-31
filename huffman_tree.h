@@ -31,14 +31,14 @@ class huffman_tree {
         node* v_in_tree = nullptr;
     } decoder_box_;
 
-    node* root;
+    node* root = nullptr;
     bool is_empty_tree;
     bit_set alphabet_code;
     bit_set tree_code;
     bit_set encode_block_set;
     std::array<bit_set, ALPHABET_SIZE> symbol_map;
 
-    node* decoder_root;
+    node* decoder_root = nullptr;
     std::queue<unsigned char> decoder_alphabet;
     bit_set dfs_tree_code;
     size_t dfs_tree_size;
@@ -107,12 +107,12 @@ class huffman_tree {
                 decoder_box_.current_size -= block_code.get_bit_size();
             }
             tree_decode_block(block_code);
-        }
-//        for (size_t i = 0; i < tree_code.get_data().size(); ++i) {
-//            if (encode_block_set.get_data()[i] != block_code.get_data()[i]) {
-//                throw std::runtime_error("block");
+//            for (size_t i = 0; i < tree_code.get_data().size(); ++i) {
+//                if (encode_block_set.get_data()[i] != block_code.get_data()[i]) {
+//                    throw std::runtime_error("block");
+//                }
 //            }
-//        }
+        }
         return buffer_block;
     }
 

@@ -72,7 +72,7 @@ uint8_t bit_set::get_last_bit() const {
 }
 
 uint8_t bit_set::at(size_t index) const {
-    uint8_t x = (data_[index / BYTE] >> (BYTE - index % BYTE - 1)) & 1;
+    uint8_t x = (data_[index / BYTE] >> (BYTE - index % BYTE - 1)) & 1u;
     return x;
 }
 

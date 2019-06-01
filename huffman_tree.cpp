@@ -147,10 +147,10 @@ void huffman_tree::check_tree_equals(huffman_tree::node* v, huffman_tree::node* 
 std::string huffman_tree::size_t_to_string(size_t x) {
     std::string result;
     result.resize(4);
-    result[0] = (x >> 24) & FULL_BYTE;
-    result[1] = (x >> 16) & FULL_BYTE;
-    result[2] = (x >> 8) & FULL_BYTE;
-    result[3] = x & FULL_BYTE;
+    result[0] = static_cast<char>((x >> 24) & FULL_BYTE);
+    result[1] = static_cast<char>((x >> 16) & FULL_BYTE);
+    result[2] = static_cast<char>((x >> 8) & FULL_BYTE);
+    result[3] = static_cast<char>(x & FULL_BYTE);
     return result;
 }
 

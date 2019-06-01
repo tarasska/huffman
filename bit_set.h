@@ -9,10 +9,6 @@
 #include <cstddef>
 #include "type_def.h"
 
-#define MAX_BIT 7u
-#define BYTE 8u
-#define FULL_BYTE 255u
-
 class bit_set {
   private:
     std::vector<ElemType> data_;

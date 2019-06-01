@@ -60,6 +60,52 @@ TEST(correctness, bit_set_append) {
     EXPECT_EQ(set4.to_string(), "0110001100100110");
 }
 
+void vector_test(size_t test_size) {
+    std::vector<uint8_t> data;
+    for (size_t i = 0; i < test_size; ++i) {
+        data.push_back(static_cast<uint8_t>(i % 256));
+    }
+    freq_counter fc;
+    fc.update(data.begin(), data.end());
+    huffman_tree tree(fc);
+    auto encode = tree.get_header_code();
+    size_t m = 0;
+    while (true) {
+        if (data.begin() + (m + 1) * BLOCK_SIZE > data.end()) {
+            encode.append(tree.encode_block(data.begin() + m * BLOCK_SIZE, data.end()));
+            break;
+        } else {
+            encode.append(tree.encode_block(data.begin() + m * BLOCK_SIZE,
+                data.begin() + (m + 1) * BLOCK_SIZE));
+            ++m;
+        }
+    }
+    m = 0;
+    std::string result;
+    while (true) {
+        if (encode.begin() + (m + 1) * BLOCK_SIZE > encode.end()) {
+            result.append(tree.decode(encode.begin() + m * BLOCK_SIZE, encode.end()));
+            break;
+        } else {
+            result.append(tree.decode(encode.begin() + m * BLOCK_SIZE,
+                                            encode.begin() + (m + 1) * BLOCK_SIZE));
+            ++m;
+        }
+    }
+    EXPECT_EQ(data.size(), result.size());
+    for (size_t i = 0; i < data.size(); ++i) {
+        EXPECT_EQ(data[i], FULL_BYTE & result[i]);
+    }
+}
+
+TEST(correctness, vector_small) {
+    vector_test(10000);
+}
+
+TEST(correctness, vector_big) {
+    vector_test(1000000);
+}
+
 TEST(correctness, const_string) {
     std::string input = "Тарас хороший программист";
     std::string bad_input = "тарас хороший программист";
@@ -329,7 +375,7 @@ TEST(correctness, random_file_59mb) {
     ASSERT_TRUE(is_file_equals("test/input_file_for_random.in", "test/file_for_decode.out"));
 }
 
-//TEST(correctness, random_file_596mb) {
+//TEST(correctness, random_file_592mb) {
 //    generate_input_file_from_vocabulary(100000000);
 //    compress("test/input_file_for_random.in", "test/buffer_file_for_encode.out");
 //    decompress("test/buffer_file_for_encode.out", "test/file_for_decode.out");

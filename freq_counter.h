@@ -26,7 +26,7 @@ class freq_counter {
             throw std::runtime_error("not trivially copyable type is prohibited");
         }
         while (first != last) {
-            data_[(uint8_t)*first].cnt++;
+            data_[FULL_BYTE & *first].cnt++;
             first++;
         }
     }

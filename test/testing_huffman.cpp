@@ -70,8 +70,9 @@ void vector_test(size_t test_size) {
     huffman_tree tree(fc);
     auto encode = tree.get_header_code();
     size_t m = 0;
+    size_t size_enc = 0;
     while (true) {
-        if (data.begin() + (m + 1) * BLOCK_SIZE > data.end()) {
+        if ((m + 1) * BLOCK_SIZE >= size_enc) {
             encode.append(tree.encode_block(data.begin() + m * BLOCK_SIZE, data.end()));
             break;
         } else {
@@ -82,8 +83,9 @@ void vector_test(size_t test_size) {
     }
     m = 0;
     std::string result;
+    size_t size_dec = encode.size();
     while (true) {
-        if (encode.begin() + (m + 1) * BLOCK_SIZE > encode.end()) {
+        if ((m + 1) * BLOCK_SIZE >= size_dec) {
             result.append(tree.decode(encode.begin() + m * BLOCK_SIZE, encode.end()));
             break;
         } else {
